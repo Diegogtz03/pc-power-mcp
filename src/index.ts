@@ -24,11 +24,6 @@ app.use(
 );
 app.options("*", cors());
 
-// Initialize transport
-const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: undefined, // set to undefined for stateless servers
-});
-
 // Health check endpoint
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -44,11 +39,24 @@ app.post("/mcp", async (req: Request, res: Response) => {
   });
   
   try {
+    // Create new transport and server for each request
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    
+    const { server } = createServer();
+    
+    // Connect server to transport
+    await server.connect(transport);
+    
     // Set proper headers for MCP
     res.setHeader('Content-Type', 'application/json');
     
     await transport.handleRequest(req, res, req.body);
     console.log(`MCP request [${requestId}] handled successfully`);
+    
+    // Clean up
+    await server.close();
   } catch (error) {
     console.error(`Error handling MCP request [${requestId}]:`, error);
     if (!res.headersSent) {
@@ -90,48 +98,16 @@ app.delete("/mcp", methodNotAllowed);
 app.put("/mcp", methodNotAllowed);
 app.patch("/mcp", methodNotAllowed);
 
-const { server } = createServer();
-
-// Server setup
-const setupServer = async () => {
-  try {
-    await server.connect(transport);
-    console.log("MCP Server connected successfully to transport");
-  } catch (error) {
-    console.error("Failed to set up the MCP server:", error);
-    throw error;
-  }
-};
-
 // Start server
-setupServer()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
-      console.log(`Health check available at: http://localhost:${PORT}/health`);
-      console.log(`MCP endpoint available at: http://localhost:${PORT}/mcp`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
+  console.log(`Health check available at: http://localhost:${PORT}/health`);
+  console.log(`MCP endpoint available at: http://localhost:${PORT}/mcp`);
+});
 
 // Handle server shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down server...");
-  try {
-    console.log(`Closing transport`);
-    await transport.close();
-  } catch (error) {
-    console.error(`Error closing transport:`, error);
-  }
-
-  try {
-    await server.close();
-    console.log("Server shutdown complete");
-  } catch (error) {
-    console.error("Error closing server:", error);
-  }
+  console.log("Server shutdown complete");
   process.exit(0);
 });
