@@ -29,34 +29,57 @@ const transport = new StreamableHTTPServerTransport({
   sessionIdGenerator: undefined, // set to undefined for stateless servers
 });
 
-// MCP endpoint
+// Health check endpoint
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// MCP endpoint with better error handling and logging
 app.post("/mcp", async (req: Request, res: Response) => {
-  console.log("Received MCP request:", req.body);
+  const requestId = req.body?.id || "unknown";
+  console.log(`Received MCP request [${requestId}]:`, {
+    method: req.body?.method,
+    id: requestId,
+    hasParams: !!req.body?.params
+  });
+  
   try {
+    // Set proper headers for MCP
+    res.setHeader('Content-Type', 'application/json');
+    
     await transport.handleRequest(req, res, req.body);
+    console.log(`MCP request [${requestId}] handled successfully`);
   } catch (error) {
-    console.error("Error handling MCP request:", error);
+    console.error(`Error handling MCP request [${requestId}]:`, error);
     if (!res.headersSent) {
       res.status(500).json({
         jsonrpc: "2.0",
         error: {
           code: -32603,
           message: "Internal server error",
+          data: process.env.NODE_ENV === 'development' ? error : undefined
         },
-        id: null,
+        id: requestId,
       });
     }
   }
 });
 
+// OPTIONS handler for preflight requests
+app.options("/mcp", (req: Request, res: Response) => {
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(200).end();
+});
+
 // Method not allowed handlers
 const methodNotAllowed = (req: Request, res: Response) => {
-  console.log(`Received ${req.method} MCP request`);
+  console.log(`Received ${req.method} request to /mcp - method not allowed`);
   res.status(405).json({
     jsonrpc: "2.0",
     error: {
       code: -32000,
-      message: "Method not allowed.",
+      message: "Method not allowed. Only POST requests are supported for MCP.",
     },
     id: null,
   });
@@ -64,6 +87,8 @@ const methodNotAllowed = (req: Request, res: Response) => {
 
 app.get("/mcp", methodNotAllowed);
 app.delete("/mcp", methodNotAllowed);
+app.put("/mcp", methodNotAllowed);
+app.patch("/mcp", methodNotAllowed);
 
 const { server } = createServer();
 
@@ -71,9 +96,9 @@ const { server } = createServer();
 const setupServer = async () => {
   try {
     await server.connect(transport);
-    console.log("Server connected successfully");
+    console.log("MCP Server connected successfully to transport");
   } catch (error) {
-    console.error("Failed to set up the server:", error);
+    console.error("Failed to set up the MCP server:", error);
     throw error;
   }
 };
@@ -83,6 +108,8 @@ setupServer()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
+      console.log(`Health check available at: http://localhost:${PORT}/health`);
+      console.log(`MCP endpoint available at: http://localhost:${PORT}/mcp`);
     });
   })
   .catch((error) => {
