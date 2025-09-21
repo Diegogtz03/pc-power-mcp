@@ -2,7 +2,7 @@
 
 Model Context Protocol (MCP) server built with Express.js that provides pc power tools.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/diegogtz03/pc-power-mcp&project-name=pc-power-mcp&repository-name=pc-power-mcp)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/diegogtz03/pc-power-mcp&project-name=pc-mcp&repository-name=pc-power-mcp)
 
 ## Features
 
