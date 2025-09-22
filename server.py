@@ -12,7 +12,7 @@ API_BASE = os.getenv("API_BASE_URL")
 AUTHORIZATION_HEADER = os.getenv("AUTHORIZATION_HEADER")
 USER_AGENT = "pc-power-app/1.0"
 
-mcp = FastMCP("PC Power Control")
+mcp = FastMCP("PC Power Control", stateless_http=True)
 
 async def make_request(url: str, method: str = "GET") -> str | None:
     """Make HTTP request to the ESP device"""
@@ -86,5 +86,5 @@ async def force_pc_off() -> str:
 
 app = mcp.http_app()
 
-if __name__ == "__main__":
-    mcp.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
+# if __name__ == "__main__":
+#     mcp.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
