@@ -1,8 +1,12 @@
-# PC Power MCP Server on Vercel
+# PC Power MCP - By @sudoguti
 
-Model Context Protocol (MCP) server built with Express.js that provides pc power tools.
+Model Context Protocol (MCP) server built with FastMCP that provides pc power tools.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/diegogtz03/pc-power-mcp&project-name=pc-mcp&repository-name=pc-power-mcp)
+
+**Important notice: haven't been able to make it work with Vercel but working on it, currently Render deployments kinda work but they turn off after a bit :(**
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/diegogtz03/pc-power-mcp)
 
 ## Features
 
