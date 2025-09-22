@@ -12,7 +12,6 @@ API_BASE = os.getenv("API_BASE_URL")
 AUTHORIZATION_HEADER = os.getenv("AUTHORIZATION_HEADER")
 USER_AGENT = "pc-power-app/1.0"
 
-# Create FastMCP server
 mcp = FastMCP("PC Power Control", stateless_http=True)
 
 async def make_request(url: str, method: str = "GET") -> str | None:
@@ -85,7 +84,4 @@ async def force_pc_off() -> str:
     else:
         return "Failed to force off the PC, maybe it's already off or ESP is offline."
 
-if __name__ == "__main__":
-    print("Starting PC Power MCP Server...")
-
-    mcp.run(transport="http", host="0.0.0.0", port=8000)
+app = mcp.http_app()
