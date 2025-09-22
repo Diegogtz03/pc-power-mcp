@@ -3,3 +3,4 @@ python-dotenv
 httpx
 dotenv
 uvicorn[standard]
+fastapi
