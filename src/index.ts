@@ -160,41 +160,30 @@ app.patch("/mcp", methodNotAllowed);
 
 // Start server
 const httpServer = app.listen(PORT, () => {
-  console.log(`🚀 PC Power MCP Server listening on port ${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔌 MCP endpoint: http://localhost:${PORT}/mcp`);
-  console.log(`🔍 MCP Inspector: Connect to http://localhost:${PORT}/mcp`);
-  console.log(`📊 Server info: GET http://localhost:${PORT}/mcp`);
-  console.log(`\n🛠️  Available tools:`);
-  console.log(`   - get-pc-power-status: Check PC power status`);
-  console.log(`   - turn-pc-on: Turn PC on`);  
-  console.log(`   - turn-pc-off: Turn PC off`);
-  console.log(`   - force-pc-off: Force PC off (dangerous)`);
+  console.log(`PC Power MCP Server listening on port ${PORT}`);
 });
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
-  console.log("\n🛑 Shutting down server gracefully...");
-  
   try {
     // Close HTTP server
     httpServer.close(() => {
-      console.log("✅ HTTP server closed");
+      console.log("HTTP server closed");
     });
     
     // Close MCP server
     await server.close();
-    console.log("✅ MCP server closed");
+    console.log("MCP server closed");
     
     console.log("✨ Server shutdown complete");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error during shutdown:", error);
+    console.error("Error during shutdown:", error);
     process.exit(1);
   }
 });
 
 process.on("SIGTERM", async () => {
-  console.log("\n🛑 Received SIGTERM, shutting down...");
+  console.log("\nReceived SIGTERM, shutting down...");
   process.kill(process.pid, "SIGINT");
 });

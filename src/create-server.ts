@@ -16,7 +16,7 @@ async function makeRequest<T>(url: string, type: 'GET' | 'POST'): Promise<T | nu
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return (await response.json()) as T;
+    return response as T;
   } catch (error) {
     console.error("Error making NWS request:", error);
     return null;
