@@ -74,6 +74,49 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
+// Add SSE endpoint for MCP Inspector
+app.get("/sse", async (req: Request, res: Response) => {
+  console.log("[SSE] New SSE connection");
+  
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+
+  // Create SSE transport for this connection
+  const sseTransport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => Math.random().toString(36).substring(7),
+  });
+
+  // Connect server to SSE transport
+  try {
+    await server.connect(sseTransport);
+    
+    // Handle SSE requests
+    const mockReq = {
+      ...req,
+      body: {}, // SSE doesn't use body initially
+      method: 'GET'
+    };
+    
+    await sseTransport.handleRequest(mockReq as any, res, {});
+    
+  } catch (error) {
+    console.error("[SSE] Error:", error);
+    res.write(`event: error\ndata: ${JSON.stringify({ error: 'Connection failed' })}\n\n`);
+    res.end();
+  }
+
+  // Handle client disconnect
+  req.on('close', () => {
+    console.log("[SSE] Client disconnected");
+  });
+});
+
 // MCP endpoint - FastMCP style stateless handling
 app.post("/mcp", async (req: Request, res: Response) => {
   const requestId = req.body?.id || Math.random().toString(36).substring(7);
@@ -127,7 +170,9 @@ app.get("/mcp", (req: Request, res: Response) => {
     description: "PC Power Control MCP Server",
     protocol: "model-context-protocol",
     endpoint: "/mcp",
+    sseEndpoint: "/sse", // Add SSE endpoint info
     methods: ["POST"],
+    transports: ["http", "sse"], // Support both transports
     tools: [
       { name: "get-pc-power-status", description: "Get user's PC power status" },
       { name: "turn-pc-on", description: "Turn user's PC on" },
@@ -135,7 +180,8 @@ app.get("/mcp", (req: Request, res: Response) => {
       { name: "force-pc-off", description: "Force user's PC off - Dangerous" }
     ],
     usage: {
-      connect: `Connect MCP Inspector or other MCP clients to: ${req.protocol}://${req.get('host')}/mcp`,
+      http: `Connect MCP clients to: ${req.protocol}://${req.get('host')}/mcp`,
+      sse: `Connect MCP Inspector to: ${req.protocol}://${req.get('host')}/sse`,
       example: "Use MCP Inspector to test this server's capabilities"
     }
   });
