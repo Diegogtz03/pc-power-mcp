@@ -106,47 +106,69 @@ app.get("/sse", async (req: Request, res: Response) => {
 
 // MCP endpoint - FastMCP style stateless handling
 app.post("/mcp", async (req: Request, res: Response) => {
-  const requestId = req.body?.id || Math.random().toString(36).substring(7);
+  // const requestId = req.body?.id || Math.random().toString(36).substring(7);
   
-  console.log(`[MCP] Received request [${requestId}]:`, {
-    method: req.body?.method || 'unknown',
-    id: requestId,
-    hasParams: !!req.body?.params,
-    jsonrpc: req.body?.jsonrpc
-  });
+  // console.log(`[MCP] Received request [${requestId}]:`, {
+  //   method: req.body?.method || 'unknown',
+  //   id: requestId,
+  //   hasParams: !!req.body?.params,
+  //   jsonrpc: req.body?.jsonrpc
+  // });
   
-  try {
-    // Set headers before processing
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // try {
+  //   // Set headers before processing
+  //   res.setHeader('Content-Type', 'application/json');
+  //   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  //   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  //   res.setHeader('Access-Control-Allow-Credentials', 'true');
     
-    // Handle the MCP request using the shared transport
-    await transport.handleRequest(req, res, req.body);
+  //   // Handle the MCP request using the shared transport
+  //   await transport.handleRequest(req, res, req.body);
     
-    console.log(`[MCP] Request [${requestId}] handled successfully`);
+  //   console.log(`[MCP] Request [${requestId}] handled successfully`);
     
-  } catch (error) {
-    console.error(`[MCP] Error handling request [${requestId}]:`, error);
+  // } catch (error) {
+  //   console.error(`[MCP] Error handling request [${requestId}]:`, error);
     
-    if (!res.headersSent) {
-      const errorResponse = {
-        jsonrpc: "2.0",
-        error: {
-          code: -32603,
-          message: "Internal server error",
-          data: process.env.NODE_ENV === 'development' ? {
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
-          } : undefined
-        },
-        id: requestId,
-      };
+  //   if (!res.headersSent) {
+  //     const errorResponse = {
+  //       jsonrpc: "2.0",
+  //       error: {
+  //         code: -32603,
+  //         message: "Internal server error",
+  //         data: process.env.NODE_ENV === 'development' ? {
+  //           error: error instanceof Error ? error.message : String(error),
+  //           stack: error instanceof Error ? error.stack : undefined
+  //         } : undefined
+  //       },
+  //       id: requestId,
+  //     };
       
-      res.status(500).json(errorResponse);
+  //     res.status(500).json(errorResponse);
+  //   }
+  // }
+
+  res.json({
+    name: "pc-power-mcp",
+    version: "1.0.0",
+    description: "PC Power Control MCP Server",
+    protocol: "model-context-protocol",
+    endpoint: "/mcp",
+    sseEndpoint: "/sse", // Add SSE endpoint info
+    methods: ["POST"],
+    transports: ["http", "sse"], // Support both transports
+    tools: [
+      { name: "get-pc-power-status", description: "Get user's PC power status" },
+      { name: "turn-pc-on", description: "Turn user's PC on" },
+      { name: "turn-pc-off", description: "Turn user's PC off" },
+      { name: "force-pc-off", description: "Force user's PC off - Dangerous" }
+    ],
+    usage: {
+      http: `Connect MCP clients to: ${req.protocol}://${req.get('host')}/mcp`,
+      sse: `Connect MCP Inspector to: ${req.protocol}://${req.get('host')}/sse`,
+      example: "Use MCP Inspector to test this server's capabilities"
     }
-  }
+  });
 });
 
 // GET handler for MCP endpoint info (useful for debugging/discovery)
