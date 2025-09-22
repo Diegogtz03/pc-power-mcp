@@ -62,15 +62,41 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
+// Handle .well-known endpoints (return 404 with proper JSON)
+app.all("/.well-known/*", (req: Request, res: Response) => {
+  console.log(`[404] Well-known endpoint requested: ${req.path}`);
+  res.status(404).json({ error: "Not found", path: req.path });
+});
+
+// Handle /register endpoint
+app.all("/register", (req: Request, res: Response) => {
+  console.log(`[404] Register endpoint requested: ${req.path}`);
+  res.status(404).json({ error: "Registration not supported", path: req.path });
+});
+
 // Main MCP endpoint - handles both SSE and HTTP POST like FastMCP
 app.all("/mcp", async (req: Request, res: Response) => {
   console.log(`[MCP] ${req.method} request from ${req.headers['user-agent'] || 'unknown'}`);
   console.log(`[MCP] Accept header: ${req.headers.accept}`);
   console.log(`[MCP] Content-Type: ${req.headers['content-type']}`);
+  console.log(`[MCP] Request body:`, JSON.stringify(req.body, null, 2));
   
   if (req.body && req.body.method) {
     console.log(`[MCP] JSON-RPC method: ${req.body.method}`);
   }
+  
+  // Add response status logging
+  const originalStatus = res.status;
+  res.status = function(code) {
+    console.log(`[MCP] Response status set to: ${code}`);
+    return originalStatus.call(this, code);
+  };
+  
+  const originalJson = res.json;
+  res.json = function(data) {
+    console.log(`[MCP] Response data:`, JSON.stringify(data, null, 2));
+    return originalJson.call(this, data);
+  };
   
   try {
     // Use the single transport instance for all requests
@@ -123,6 +149,12 @@ app.get("/", (req: Request, res: Response) => {
       example: "Use MCP Inspector to test this server's capabilities"
     }
   });
+});
+
+// Catch-all for debugging
+app.use((req: Request, res: Response) => {
+  console.log(`[404] Unhandled request: ${req.method} ${req.path}`);
+  res.status(404).json({ error: "Not found", path: req.path, method: req.method });
 });
 
 // Start server
