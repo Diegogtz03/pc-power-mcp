@@ -84,5 +84,7 @@ async def force_pc_off() -> str:
     else:
         return "Failed to force off the PC, maybe it's already off or ESP is offline."
 
+app = mcp.http_app()
+
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
