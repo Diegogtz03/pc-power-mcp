@@ -88,5 +88,6 @@ async def force_pc_off() -> str:
 app = FastAPI(lifespan=lambda app: mcp.session_manager.run())
 app.mount("/", mcp.http_app())
 
-if __name__ == "__main__":
-    mcp.run(transport='streamable-http')
+# if __name__ == "__main__":
+#     print("Starting MCP server...")
+#     # mcp.run(transport='streamable-http')
