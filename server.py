@@ -3,7 +3,7 @@ import asyncio
 import httpx
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from fastapi import FastAPI
+# from fastapi import FastAPI
 
 # Load environment variables
 load_dotenv()
@@ -85,9 +85,10 @@ async def force_pc_off() -> str:
     else:
         return "Failed to force off the PC, maybe it's already off or ESP is offline."
 
-app = FastAPI(lifespan=lambda app: mcp.session_manager.run())
-app.mount("/", mcp.http_app())
+# app = FastAPI(lifespan=lambda app: mcp.session_manager.run())
+# app.mount("/", mcp.http_app())
 
-# if __name__ == "__main__":
+app = mcp.http_app()
+
 #     print("Starting MCP server...")
-#     # mcp.run(transport='streamable-http')
+#     mcp.run(transport='streamable-http', host="0.0.0.0", port=8000)
