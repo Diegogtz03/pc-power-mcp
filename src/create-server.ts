@@ -3,22 +3,25 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 const API_BASE = `${process.env.API_BASE_URL}`;
 const USER_AGENT = "pc-power-app/1.0";
 
-async function makeRequest<T>(url: string, type: 'GET' | 'POST'): Promise<T | null> {
+async function makeRequest<T>(url: string, method: 'GET' | 'POST'): Promise<T | null> {
   const headers = {
     "User-Agent": USER_AGENT,
     "Authorization": `${process.env.AUTHORIZATION_HEADER}`,
-    Accept: "application/json, text/plain, */*",
-    method: type,
+    "Accept": "application/json, text/plain, */*",
   };
 
   try {
-    const response = await fetch(url, { headers });
+    const response = await fetch(url, { 
+      method: method, // Fixed: Use method properly
+      headers 
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return (await response.text()) as T;
   } catch (error) {
-    console.error("Error making NWS request:", error);
+    console.error("Error making request:", error);
     return null;
   }
 }
@@ -33,6 +36,7 @@ export const createServer = () => {
   server.tool(
     "get-pc-power-status",
     "Get user's PC power status",
+    {},
     async () => {
       const statusUrl = `${API_BASE}/state`;
       const statusData = await makeRequest<string>(statusUrl, 'GET');
@@ -63,6 +67,7 @@ export const createServer = () => {
   server.tool(
     "turn-pc-on",
     "Turn user's PC on",
+    {},
     async () => {
       const powerUrl = `${API_BASE}/on`;
       const powerData = await makeRequest<string>(powerUrl, 'POST');
@@ -103,6 +108,7 @@ export const createServer = () => {
   server.tool(
     "turn-pc-off",
     "Turn user's PC off",
+    {},
     async () => {
       const powerUrl = `${API_BASE}/off`;
       const powerData = await makeRequest<string>(powerUrl, 'POST');
@@ -143,6 +149,7 @@ export const createServer = () => {
   server.tool(
     "force-pc-off",
     "Force user's PC off - Dangerous",
+    {},
     async () => {
       const powerUrl = `${API_BASE}/foff`;
       const powerData = await makeRequest<string>(powerUrl, 'POST');
