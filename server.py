@@ -14,6 +14,7 @@ AUTHORIZATION_HEADER = os.getenv("AUTHORIZATION_HEADER")
 USER_AGENT = "pc-power-app/1.0"
 
 mcp = FastMCP("PC Power Control", stateless_http=True)
+mcp_app = mcp.http_app(path='/mcp')
 
 async def make_request(url: str, method: str = "GET") -> str | None:
     """Make HTTP request to the ESP device"""
@@ -85,10 +86,5 @@ async def force_pc_off() -> str:
     else:
         return "Failed to force off the PC, maybe it's already off or ESP is offline."
 
-# app = FastAPI(lifespan=lambda app: mcp.session_manager.run())
-# app.mount("/", mcp.http_app())
-
-app = mcp.http_app()
-
-#     print("Starting MCP server...")
-#     mcp.run(transport='streamable-http', host="0.0.0.0", port=8000)
+if __name__ == "__main__":
+    mcp.run(transport="http", host="0.0.0.0", port=8000)
