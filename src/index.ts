@@ -22,25 +22,12 @@ const transport = new StreamableHTTPServerTransport({
 server.connect(transport).catch(console.error);
 
 // Middleware setup
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(process.cwd(), "public")));
 
 // Enhanced CORS for MCP Inspector
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      // Allow localhost and any origin for development
-      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('mcp-inspector')) {
-        return callback(null, true);
-      }
-      
-      // Allow all origins in development
-      return callback(null, true);
-    },
+    origin: true, // Reflect request origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
     allowedHeaders: [
       'Origin',
