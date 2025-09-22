@@ -3,7 +3,6 @@ import asyncio
 import httpx
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-# from fastapi import FastAPI
 
 # Load environment variables
 load_dotenv()
@@ -13,8 +12,7 @@ API_BASE = os.getenv("API_BASE_URL")
 AUTHORIZATION_HEADER = os.getenv("AUTHORIZATION_HEADER")
 USER_AGENT = "pc-power-app/1.0"
 
-mcp = FastMCP("PC Power Control", stateless_http=True)
-mcp_app = mcp.http_app(path='/mcp')
+mcp = FastMCP("PC Power Control")
 
 async def make_request(url: str, method: str = "GET") -> str | None:
     """Make HTTP request to the ESP device"""
@@ -87,4 +85,4 @@ async def force_pc_off() -> str:
         return "Failed to force off the PC, maybe it's already off or ESP is offline."
 
 if __name__ == "__main__":
-    mcp.run(transport="http", host="0.0.0.0", port=8000)
+    mcp.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
